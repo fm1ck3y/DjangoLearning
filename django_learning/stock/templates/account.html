@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div>
+        <h4>Денежные средства</h4>
+        {% for acc_currency in currencies %}
+            <div>{{ acc_currency.amount }}{{ acc_currency.sign }}</div>
+        {% endfor %}
+    </div>
+    <div>
+        <h4>Акции</h4>
+        {% for acc_stock in stocks %}
+            <div>{{ acc_stock.ticker }} - {{ acc_stock.amount }} - {{ acc_stock.avg }}</div>
+        {% endfor %}
+    </div>
+    <div>
+        <a href="{% url 'stock:list' %}">К списку акций</a>
+    </div>
+{% endblock %}

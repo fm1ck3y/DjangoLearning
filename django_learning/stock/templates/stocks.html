@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+{% extends 'base.html' %}
+{% block content %}
 <head>
     <meta charset="UTF-8">
     <title>List of Stocks</title>
 </head>
 <body>
-    <table>
+    <table class="table">
         <thead>
             <tr>
+                <th>Logo</th> <!--новая колонка в заголовке таблицы-->
                 <th>Ticker</th>
                 <th>Company</th>
                 <th>Last close price</th>
@@ -16,12 +19,20 @@
         <tbody>
         {% for stock in stocks %}
             <tr>
+                <td> <!--новая колонка в теле таблицы-->
+                    {% if stock.logo %}
+                    <img src="{{ MEDIA_URL }}/{{ stock.logo }}" width="40" />
+                    {% endif %}
+                </td> <!--новая колонка заканчивается здесь-->
                 <td>{{ stock.ticker }}</td>
                 <td>{{ stock.name }}</td>
-                <td>{{ stock.get_random_price }}{{ stock.currency.sign }}</td>
+                <td>{{ stock.get_random_price }}{{ stock.currency.sign }}
+                    <a href="{% url 'stock:detail' stock.pk %}">Купить</a>
+                </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 </body>
+{% endblock %}
 </html>
