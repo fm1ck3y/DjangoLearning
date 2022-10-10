@@ -6,8 +6,14 @@
     <div>
         <form method="POST" action="{% url 'stock:buy' stock.pk %}">
             {% csrf_token %}
-            {{ form }}
+            {{ form_buy }}
             <button>Купить</button>
+        </form>
+    </br>
+        <form method="POST" action="{% url 'stock:sell' stock.pk %}">
+            {% csrf_token %}
+            {{ form_sell }}
+            <button>Продать</button>
         </form>
     </div>
     <div>

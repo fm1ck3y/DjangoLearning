@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db import transaction
 import random
 
 class Stock(models.Model):
@@ -34,6 +35,58 @@ class AccountCurrency(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
     amount = models.IntegerField(default=0)
+
+    def sell(self, amount, price, stock) -> bool:
+        try:
+            with transaction.atomic():
+                acc_stock, created = AccountStock.objects.get_or_create(account=self.account, stock=stock,
+                                                                defaults={'average_buy_cost': 0, 'amount': 0})
+
+                if amount > acc_stock.amount or amount <= 0:
+                   return False
+
+                sell_cost = price * amount # price * count
+                current_cost = acc_stock.average_buy_cost * acc_stock.amount
+                total_cost = current_cost + sell_cost
+
+                acc_stock.amount = acc_stock.amount - amount
+
+                if acc_stock.amount > 0:
+                   acc_stock.average_buy_cost = total_cost / acc_stock.amount
+                else:
+                   acc_stock.average_buy_cost = 0
+
+                self.amount = self.amount + sell_cost
+                acc_stock.save()
+                self.save()
+                return True
+        except IntegrityError:
+            return False
+
+    def buy(self, amount, price, stock) -> bool:
+        try:
+            with transaction.atomic():
+                buy_cost = price * amount
+
+                acc_stock, created = AccountStock.objects.get_or_create(account=self.account, stock=stock,
+                                                                defaults={'average_buy_cost': 0, 'amount': 0})
+                current_cost = acc_stock.average_buy_cost * acc_stock.amount
+
+                total_cost = current_cost + buy_cost
+                total_amount = acc_stock.amount + amount
+
+                acc_stock.amount = total_amount
+                acc_stock.average_buy_cost = total_cost / total_amount
+
+                if self.amount < buy_cost:
+                    return False
+                
+                self.amount = self.amount - buy_cost
+                acc_stock.save()
+                self.save()
+                return True
+        except IntegrityError:
+            return False
 
     class Meta:
         unique_together = ['account', 'currency']
